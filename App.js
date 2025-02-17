@@ -1,39 +1,38 @@
 import React, { Component } from "react";
+import ReactDOM from "react-dom";
 import { Container } from "react-bootstrap";
 import "./App.css";
 import "./bootstrap.min.css"; // подключаем bootstrap.min.css
 
 // Компонент Form, в котором будем работать с рефами
 class Form extends Component {
-    // Временно закомментированные рефы, которые можно было бы использовать
-    // myRef = React.createRef();
-    // mySecondRef = React.createRef();
+    state = {
+        advOpen: false, // Состояние для контроля видимости компонента Msg
+    };
+
+    // Метод для переключения состояния advOpen
+    handleClick = () => {
+        this.setState(({ advOpen }) => ({
+            advOpen: !advOpen, // Переключаем состояние, открывая или закрывая Msg
+        }));
+    };
+
+    myRef = React.createRef(); // Создание рефа для input
 
     // Компонентный метод, который будет вызван после того, как компонент был смонтирован
-    // componentDidMount() {
-    //     this.myRef.current.focus();  // Это фокусирует на элементе, к которому привязан реф.
-    // }
-
-    // Метод для установки рефа с помощью функции
-    setInputRef = (elem) => {
-        // Присваиваем переданный элемент в myRef
-        this.myRef = elem; // Этот элемент будет рефом, то есть ссылка на DOM элемент input
-    };
-
-    // Метод для фокусировки на первом input
-    focusFirstTI = () => {
-        if (this.myRef) {
-            // Если myRef существует (элемент DOM уже присоединен),
-            // фокусируемся на нем
-            this.myRef.focus(); // Фокусируемся на input, к которому привязан реф
-        }
-    };
+    componentDidMount() {
+        this.myRef.current.focus(); // Устанавливаем фокус на input с помощью рефа
+        setTimeout(() => this.handleClick(), 3000); // Через 3 секунды переключаем состояние advOpen
+    }
 
     // Рендерим форму с полями ввода и textarea
     render() {
         return (
             <Container>
-                <form className="w-50 border mt-5 p-3 m-auto">
+                <form
+                    onClick={this.handleClick} // При клике на форму будет переключаться состояние advOpen
+                    className="w-50 border mt-5 p-3 m-auto"
+                >
                     <div className="mb-3">
                         <label
                             htmlFor="exampleFormControlInput1"
@@ -41,9 +40,8 @@ class Form extends Component {
                         >
                             Email address
                         </label>
-                        {/* Это поле ввода использует функцию для рефа */}
                         <input
-                            ref={this.setInputRef} // Функция setInputRef будет вызываться и передаст в myRef элемент input
+                            ref={this.myRef} // Фокусируемся на этом input с помощью рефа
                             type="email"
                             className="form-control"
                             id="exampleFormControlInput1"
@@ -58,21 +56,50 @@ class Form extends Component {
                             Example textarea
                         </label>
                         <textarea
-                            onClick={this.focusFirstTI} // При клике на textarea, вызываем функцию, которая фокусирует input
                             className="form-control"
                             id="exampleFormControlTextarea1"
                             rows="3"
                         ></textarea>
                     </div>
+                    {this.state.advOpen ? ( // Если advOpen true, показываем компонент Msg внутри Portal
+                        <Portal>
+                            <Msg />
+                        </Portal>
+                    ) : null}
                 </form>
             </Container>
         );
     }
 }
 
+// Компонент Portal, который создает новый DOM-узел и рендерит в него дочерние компоненты
+const Portal = (props) => {
+    const node = document.createElement("div"); // Создаем новый div элемент
+    document.body.appendChild(node); // Добавляем этот элемент в body документа
+
+    // Используем ReactDOM.createPortal для рендеринга дочерних компонентов в новый узел
+    return ReactDOM.createPortal(props.children, node); // Рендерим дочерние компоненты в новый узел
+};
+
+// Компонент Msg, который будет рендериться в новый DOM-узел через Portal
+const Msg = () => {
+    return (
+        <div
+            style={{
+                width: "500px",
+                height: "50px",
+                margin: "0 auto",
+                backgroundColor: "red",
+            }}
+        >
+            Hello
+        </div>
+    );
+};
+
 // Функция для рендеринга компонента App, который включает в себя Form
 function App() {
-    return <Form />; // Включаем компонент Form в App
+    return <Form />;
 }
 
 export default App;
